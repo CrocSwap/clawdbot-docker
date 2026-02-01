@@ -69,7 +69,7 @@ OPENCLAW_BIND_HOST=0.0.0.0
 | `OPENCLAW_BIND_HOST` | Host-side bind address. Defaults to `127.0.0.1`. Set to `0.0.0.0` for remote access. |
 
 The logic:
-- **No token set** (default): port bound to `127.0.0.1`, a throwaway token is auto-generated to satisfy the gateway, Control UI is open via `allowInsecureAuth`. Safe for local use.
+- **No token set** (default): port bound to `127.0.0.1`, a default token (`local`) is used. Access the Control UI at `http://localhost:18789/?token=local`. Safe for local use since the port is only reachable from your machine.
 - **Token set**: you're signaling remote access intent. Set `OPENCLAW_BIND_HOST=0.0.0.0` to make the port reachable from other machines. Consider disabling `allowInsecureAuth` in the config for production use.
 
 Chat channels (Telegram, Discord, Slack) connect outbound and are unaffected by the bind address.
@@ -117,6 +117,24 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ```
 
 Then rebuild: `docker-compose up --build`
+
+## Security
+
+Running in a container significantly reduces blast radius compared to running clawdbot directly on your host machine.
+
+**What the container isolates:**
+- **Filesystem** — AI-generated code can only access the two bind-mounted directories (`./data/` and `./workspace/`). It cannot read your home directory, SSH keys, other projects, etc.
+- **Processes** — cannot see or signal processes on the host.
+- **Syscalls** — Docker's default seccomp profile blocks dangerous operations (kernel modules, reboot, etc.).
+
+**What it does NOT isolate:**
+- **Outbound network** — the container has full internet access (required for API calls and chat channels). AI-generated code could exfiltrate data from the workspace.
+- **Bind-mounted data** — anything in `./data/` and `./workspace/` is fully accessible. Don't put sensitive files in the workspace.
+- **Resource exhaustion** — no CPU/memory limits by default. Add `mem_limit` and `cpus` to the service in `docker-compose.yml` if needed.
+
+**Things to avoid:**
+- Never mount the Docker socket (`/var/run/docker.sock`) into the container — this is effectively root on the host.
+- For remote deployments, always set `CLAWDBOT_GATEWAY_TOKEN` and consider disabling `allowInsecureAuth`.
 
 ## Project Structure
 
