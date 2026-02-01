@@ -1,0 +1,25 @@
+services:
+  openclaw:
+    build:
+      context: .
+      args:
+        EXTRA_APT_PACKAGES: ""  # Add apt packages here, e.g. "python3 python3-pip"
+    ports:
+      - "18789:18789"
+    volumes:
+      - ./data:/root/.clawdbot        # Persistent config + conversations
+      - ./workspace:/root/clawd        # Workspace + skills
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # Optional: custom Anthropic base URL (e.g. for a proxy)
+      # - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL}
+      # Optional: OpenAI provider
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # Optional: chat channels
+      # - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      # - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      # - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      # - SLACK_APP_TOKEN=${SLACK_APP_TOKEN}
+      # Optional: gateway auth token (for programmatic access)
+      # - CLAWDBOT_GATEWAY_TOKEN=${CLAWDBOT_GATEWAY_TOKEN}
+    restart: unless-stopped

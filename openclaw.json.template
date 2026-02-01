@@ -1,0 +1,11 @@
+{
+  "agents": {
+    "defaults": {
+      "workspace": "/root/clawd"
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local"
+  }
+}
