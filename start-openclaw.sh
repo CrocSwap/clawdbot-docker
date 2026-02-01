@@ -192,10 +192,11 @@ rm -f "$CONFIG_DIR/gateway.lock" 2>/dev/null || true
 
 BIND_MODE="lan"
 
-if [ -n "$CLAWDBOT_GATEWAY_TOKEN" ]; then
-    echo "Starting gateway with token auth..."
-    exec clawdbot gateway --port 18789 --verbose --allow-unconfigured --bind "$BIND_MODE" --token "$CLAWDBOT_GATEWAY_TOKEN"
-else
-    echo "Starting gateway without token..."
-    exec clawdbot gateway --port 18789 --verbose --allow-unconfigured --bind "$BIND_MODE"
+# Gateway requires auth when binding to lan. Auto-generate a token if none provided.
+if [ -z "$CLAWDBOT_GATEWAY_TOKEN" ]; then
+    CLAWDBOT_GATEWAY_TOKEN=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+    echo "No CLAWDBOT_GATEWAY_TOKEN set, generated random token: $CLAWDBOT_GATEWAY_TOKEN"
 fi
+
+echo "Starting gateway with token auth..."
+exec clawdbot gateway --port 18789 --verbose --allow-unconfigured --bind "$BIND_MODE" --token "$CLAWDBOT_GATEWAY_TOKEN"
