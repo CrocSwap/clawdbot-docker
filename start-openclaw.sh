@@ -201,11 +201,23 @@ find "$CONFIG_DIR" -name "*.lock" -delete 2>/dev/null || true
 
 BIND_MODE="lan"
 
-# Gateway requires auth when binding to lan. Auto-generate a token if none provided.
+# Token logic:
+# - If CLAWDBOT_GATEWAY_TOKEN is set, the user intends remote/LAN access.
+# - If no token is set, use a stable default. The host-side port is bound
+#   to 127.0.0.1 by default (in docker-compose.yml), so a well-known token
+#   is not a security concern for local use.
 if [ -z "$CLAWDBOT_GATEWAY_TOKEN" ]; then
-    CLAWDBOT_GATEWAY_TOKEN=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
-    echo "No CLAWDBOT_GATEWAY_TOKEN set, generated random token: $CLAWDBOT_GATEWAY_TOKEN"
+    CLAWDBOT_GATEWAY_TOKEN="local"
+    echo "No CLAWDBOT_GATEWAY_TOKEN set — using default token for local access"
+else
+    echo "Starting gateway with explicit token (remote access mode)..."
 fi
 
-echo "Starting gateway with token auth..."
+echo ""
+echo "============================================================"
+echo "  Open the Control UI at:"
+echo "  http://localhost:18789/?token=${CLAWDBOT_GATEWAY_TOKEN}"
+echo "============================================================"
+echo ""
+
 exec clawdbot gateway --port 18789 --verbose --allow-unconfigured --bind "$BIND_MODE" --token "$CLAWDBOT_GATEWAY_TOKEN"

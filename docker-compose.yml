@@ -5,7 +5,7 @@ services:
       args:
         EXTRA_APT_PACKAGES: ""  # Add apt packages here, e.g. "python3 python3-pip"
     ports:
-      - "18789:18789"
+      - "${OPENCLAW_BIND_HOST:-127.0.0.1}:18789:18789"
     volumes:
       - ./data:/root/.clawdbot        # Persistent config + conversations
       - ./workspace:/root/clawd        # Workspace + skills

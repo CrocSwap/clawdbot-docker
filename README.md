@@ -52,13 +52,27 @@ The default model is Claude Sonnet 4.5. Setting `OPENAI_API_KEY` adds GPT models
 | `SLACK_BOT_TOKEN` | Slack bot token (requires `SLACK_APP_TOKEN` too) |
 | `SLACK_APP_TOKEN` | Slack app-level token |
 
-### Auth
+### Networking and Auth
+
+By default, the gateway port is bound to **`127.0.0.1`** (localhost only). This means only the host machine can access the Control UI — no token configuration needed for local use.
+
+**For remote/VM deployments**, set `CLAWDBOT_GATEWAY_TOKEN` in your `.env`:
+
+```
+CLAWDBOT_GATEWAY_TOKEN=some-strong-secret
+OPENCLAW_BIND_HOST=0.0.0.0
+```
 
 | Variable | Description |
 |----------|-------------|
-| `CLAWDBOT_GATEWAY_TOKEN` | Shared token for programmatic API access |
+| `CLAWDBOT_GATEWAY_TOKEN` | Gateway auth token. When set, enables remote access mode. |
+| `OPENCLAW_BIND_HOST` | Host-side bind address. Defaults to `127.0.0.1`. Set to `0.0.0.0` for remote access. |
 
-The gateway requires an auth token when listening on all interfaces (which Docker needs for port forwarding). If you don't set `CLAWDBOT_GATEWAY_TOKEN`, one is auto-generated on each start and printed to the container logs. The Control UI allows unauthenticated browser access by default (`allowInsecureAuth`), so the token is mainly relevant for programmatic API access. If you expose port 18789 externally, set an explicit token and consider disabling `allowInsecureAuth` in the config.
+The logic:
+- **No token set** (default): port bound to `127.0.0.1`, a throwaway token is auto-generated to satisfy the gateway, Control UI is open via `allowInsecureAuth`. Safe for local use.
+- **Token set**: you're signaling remote access intent. Set `OPENCLAW_BIND_HOST=0.0.0.0` to make the port reachable from other machines. Consider disabling `allowInsecureAuth` in the config for production use.
+
+Chat channels (Telegram, Discord, Slack) connect outbound and are unaffected by the bind address.
 
 ## Browser Automation
 

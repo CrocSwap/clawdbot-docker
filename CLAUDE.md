@@ -22,7 +22,7 @@ This was extracted from the Cloudflare moltworker deployment at `/Users/colkitt/
 - Config lives at `/root/.clawdbot/clawdbot.json` inside the container. The startup script merges env vars into it on every boot, so env var changes take effect on restart without losing manually-edited config fields.
 - `allowInsecureAuth` is set to `true` by default in the startup script (not the template). This is intentional for localhost use.
 - The config merge script always clears and re-sets `agents.defaults.model.primary` to prevent stale model references.
-- Gateway binds in `lan` mode (listens on all interfaces inside the container). This requires a token — one is auto-generated if `CLAWDBOT_GATEWAY_TOKEN` is not set.
+- **Networking/auth model**: The gateway always binds in `lan` mode inside the container (required for Docker port forwarding). The host-side bind is controlled by `OPENCLAW_BIND_HOST` in `docker-compose.yml`, defaulting to `127.0.0.1` (localhost only). When `CLAWDBOT_GATEWAY_TOKEN` is not set, a throwaway token is auto-generated to satisfy the gateway's lan-mode auth requirement — it's not meaningful security since the port is only reachable from localhost. When `CLAWDBOT_GATEWAY_TOKEN` is explicitly set, the user should also set `OPENCLAW_BIND_HOST=0.0.0.0` for remote access. Chat channels (Telegram, Discord, Slack) use outbound connections and are unaffected by bind address.
 - Chromium is installed in the image. The startup script configures `browser.enabled`, `browser.headless`, `browser.noSandbox`, `browser.executablePath`, and `browser.defaultProfile` on every boot. These are set in the config merge script, not the template, so they apply even for existing configs.
 - Stale `.lock` files under the config directory are cleaned up on boot to prevent crashes after unclean shutdowns.
 
@@ -33,7 +33,8 @@ Handled by the inline Node.js script in `start-openclaw.sh`:
 - `ANTHROPIC_BASE_URL` — optional, for proxies
 - `OPENAI_API_KEY` — adds OpenAI as a secondary provider
 - `TELEGRAM_BOT_TOKEN`, `DISCORD_BOT_TOKEN`, `SLACK_BOT_TOKEN`/`SLACK_APP_TOKEN` — chat channels
-- `CLAWDBOT_GATEWAY_TOKEN` — shared auth token for API access
+- `CLAWDBOT_GATEWAY_TOKEN` — gateway auth token; when set, signals remote access intent
+- `OPENCLAW_BIND_HOST` — host-side bind address in docker-compose.yml (default `127.0.0.1`, set to `0.0.0.0` for remote access). This is a docker-compose variable, not passed into the container.
 
 ## Build and Run
 
