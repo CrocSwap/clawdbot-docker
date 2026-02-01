@@ -10,7 +10,7 @@ This was extracted from the Cloudflare moltworker deployment at `/Users/colkitt/
 
 ## Architecture
 
-- **Dockerfile**: Based on `node:22`. Installs clawdbot globally via npm, runs `user-setup.sh` hook for custom toolchains.
+- **Dockerfile**: Based on `node:22`. Installs clawdbot globally via npm, Chromium for browser automation, and runs `user-setup.sh` hook for custom toolchains.
 - **start-openclaw.sh**: Entrypoint script. Copies config template on first run, then runs an inline Node.js heredoc that merges environment variables into `clawdbot.json`. Finally execs `clawdbot gateway`.
 - **docker-compose.yml**: Bind-mounts `./data/` → `/root/.clawdbot/` (config/state) and `./workspace/` → `/root/clawd/` (workspace/skills). Passes env vars from `.env` file.
 - **openclaw.json.template**: Minimal seed config (workspace path + gateway port). Only used on first run.
@@ -22,7 +22,9 @@ This was extracted from the Cloudflare moltworker deployment at `/Users/colkitt/
 - Config lives at `/root/.clawdbot/clawdbot.json` inside the container. The startup script merges env vars into it on every boot, so env var changes take effect on restart without losing manually-edited config fields.
 - `allowInsecureAuth` is set to `true` by default in the startup script (not the template). This is intentional for localhost use.
 - The config merge script always clears and re-sets `agents.defaults.model.primary` to prevent stale model references.
-- Gateway binds in `lan` mode (listens on all interfaces inside the container).
+- Gateway binds in `lan` mode (listens on all interfaces inside the container). This requires a token — one is auto-generated if `CLAWDBOT_GATEWAY_TOKEN` is not set.
+- Chromium is installed in the image. The startup script configures `browser.enabled`, `browser.headless`, `browser.noSandbox`, `browser.executablePath`, and `browser.defaultProfile` on every boot. These are set in the config merge script, not the template, so they apply even for existing configs.
+- Stale `.lock` files under the config directory are cleaned up on boot to prevent crashes after unclean shutdowns.
 
 ## Environment Variables
 

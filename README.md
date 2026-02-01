@@ -27,6 +27,8 @@ Local Docker runtime for [OpenClaw](https://github.com/openclaw/openclaw) (packa
 
 That's it. Config and conversations persist in `./data/`, workspace files in `./workspace/`.
 
+Browser automation (Chromium) is included and configured out of the box — no extra setup needed.
+
 ## Configuration
 
 All configuration is done through environment variables, either in `.env` or passed directly. The startup script merges these into the `clawdbot.json` config on each boot.
@@ -56,7 +58,19 @@ The default model is Claude Sonnet 4.5. Setting `OPENAI_API_KEY` adds GPT models
 |----------|-------------|
 | `CLAWDBOT_GATEWAY_TOKEN` | Shared token for programmatic API access |
 
-By default, the Control UI allows unauthenticated access (suitable for localhost). If you expose port 18789 externally, set a gateway token or edit the config to disable `allowInsecureAuth`.
+The gateway requires an auth token when listening on all interfaces (which Docker needs for port forwarding). If you don't set `CLAWDBOT_GATEWAY_TOKEN`, one is auto-generated on each start and printed to the container logs. The Control UI allows unauthenticated browser access by default (`allowInsecureAuth`), so the token is mainly relevant for programmatic API access. If you expose port 18789 externally, set an explicit token and consider disabling `allowInsecureAuth` in the config.
+
+## Browser Automation
+
+Chromium is installed in the image and pre-configured for headless operation in Docker. The startup script sets:
+
+- `browser.enabled: true`
+- `browser.executablePath: /usr/bin/chromium`
+- `browser.headless: true`
+- `browser.noSandbox: true` (Docker provides isolation)
+- `browser.defaultProfile: "clawd"`
+
+This works out of the box — no extra configuration needed. If you run into shared memory issues with complex pages, add `shm_size: '2gb'` to the service in `docker-compose.yml`.
 
 ## Volumes
 
