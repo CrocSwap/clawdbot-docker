@@ -2,6 +2,13 @@
 
 Local Docker runtime for [OpenClaw](https://github.com/openclaw/openclaw) (package name: `clawdbot`). Provides container isolation with persistent storage, configurable via environment variables.
 
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) (included with Docker Desktop)
+- An API key from [Anthropic](https://console.anthropic.com/) (or OpenAI)
+
+Everything else (Node.js, clawdbot, Chromium) is installed inside the container during the build.
+
 ## Quick Start
 
 1. **Clone and configure:**
