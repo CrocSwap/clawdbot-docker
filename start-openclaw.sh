@@ -133,6 +133,11 @@ if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_APP_TOKEN) {
     config.channels.slack.enabled = true;
 }
 
+// Helper: parse comma-separated model list from env var, filtering blanks
+function parseExtraModels(envVar) {
+    return (process.env[envVar] || '').split(',').map(s => s.trim()).filter(Boolean);
+}
+
 // Anthropic provider configuration
 const baseUrl = (process.env.ANTHROPIC_BASE_URL || '').replace(/\/+$/, '');
 const anthropicModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5-20250929';
@@ -146,9 +151,15 @@ if (baseUrl) {
         { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', contextWindow: 200000 },
         { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', contextWindow: 200000 },
     ];
-    // If the user specified a model not in the known list, add it
+    // If the user specified a primary model not in the known list, add it
     if (!knownModels.some(m => m.id === anthropicModel)) {
         knownModels.push({ id: anthropicModel, name: anthropicModel, contextWindow: 200000 });
+    }
+    // Add any extra models from ANTHROPIC_EXTRA_MODELS
+    for (const extraId of parseExtraModels('ANTHROPIC_EXTRA_MODELS')) {
+        if (!knownModels.some(m => m.id === extraId)) {
+            knownModels.push({ id: extraId, name: extraId, contextWindow: 200000 });
+        }
     }
     const providerConfig = {
         baseUrl: baseUrl,
@@ -166,6 +177,9 @@ if (baseUrl) {
     if (!knownModels.slice(0, 3).some(m => m.id === anthropicModel)) {
         config.agents.defaults.models['anthropic/' + anthropicModel] = { alias: anthropicModel };
     }
+    for (const extraId of parseExtraModels('ANTHROPIC_EXTRA_MODELS')) {
+        config.agents.defaults.models['anthropic/' + extraId] = { alias: extraId };
+    }
     config.agents.defaults.model.primary = 'anthropic/' + anthropicModel;
 } else if (process.env.ANTHROPIC_API_KEY) {
     // No custom base URL — default to Anthropic direct API
@@ -181,11 +195,17 @@ if (process.env.OPENAI_API_KEY) {
     config.models = config.models || {};
     config.models.providers = config.models.providers || {};
 
+    const openaiModels = [
+        { id: openaiModel, name: openaiModel, contextWindow: 200000 },
+    ];
+    for (const extraId of parseExtraModels('OPENAI_EXTRA_MODELS')) {
+        if (!openaiModels.some(m => m.id === extraId)) {
+            openaiModels.push({ id: extraId, name: extraId, contextWindow: 200000 });
+        }
+    }
     const openaiProvider = {
         api: 'openai-responses',
-        models: [
-            { id: openaiModel, name: openaiModel, contextWindow: 200000 },
-        ]
+        models: openaiModels
     };
     if (openaiBaseUrl) {
         openaiProvider.baseUrl = openaiBaseUrl;
@@ -194,6 +214,9 @@ if (process.env.OPENAI_API_KEY) {
 
     config.agents.defaults.models = config.agents.defaults.models || {};
     config.agents.defaults.models['openai/' + openaiModel] = { alias: openaiModel };
+    for (const extraId of parseExtraModels('OPENAI_EXTRA_MODELS')) {
+        config.agents.defaults.models['openai/' + extraId] = { alias: extraId };
+    }
 
     // If no Anthropic key, use OpenAI model as primary
     if (!process.env.ANTHROPIC_API_KEY) {

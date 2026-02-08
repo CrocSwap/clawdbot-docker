@@ -46,9 +46,25 @@ All configuration is done through environment variables, either in `.env` or pas
 |----------|-------------|
 | `ANTHROPIC_API_KEY` | Anthropic API key (required for default setup) |
 | `ANTHROPIC_BASE_URL` | Custom Anthropic endpoint (e.g. for a proxy) |
+| `ANTHROPIC_MODEL` | Primary Anthropic model (default: `claude-sonnet-4-5-20250929`) |
+| `ANTHROPIC_EXTRA_MODELS` | Additional Anthropic model IDs, comma-separated |
 | `OPENAI_API_KEY` | Enables OpenAI as an additional provider |
+| `OPENAI_MODEL` | Primary OpenAI model (default: `gpt-5.2`) |
+| `OPENAI_EXTRA_MODELS` | Additional OpenAI model IDs, comma-separated |
 
-The default model is Claude Sonnet 4.5. Setting `OPENAI_API_KEY` adds GPT models as options without changing the default.
+**Model selection logic:**
+
+- The **primary model** (used by default for new conversations) is set by `ANTHROPIC_MODEL` or `OPENAI_MODEL`. If both Anthropic and OpenAI keys are set, the Anthropic model takes priority as primary.
+- Three Anthropic models are always registered when `ANTHROPIC_BASE_URL` is set: Claude Opus 4.5, Sonnet 4.5, and Haiku 4.5. Without a base URL, models are resolved by the Anthropic API directly.
+- For OpenAI, only the primary model is registered by default.
+- Use `*_EXTRA_MODELS` to make additional models available in the UI beyond the defaults. For example:
+
+  ```
+  ANTHROPIC_EXTRA_MODELS=claude-opus-4-6,claude-haiku-4-6
+  OPENAI_EXTRA_MODELS=o3-pro,gpt-4.1
+  ```
+
+  Any model listed in `*_EXTRA_MODELS` that duplicates a built-in model is ignored (no duplicates).
 
 ### Chat Channels
 

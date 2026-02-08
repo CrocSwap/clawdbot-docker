@@ -32,7 +32,9 @@ Handled by the inline Node.js script in `start-openclaw.sh`:
 - `ANTHROPIC_API_KEY` — required for default setup
 - `ANTHROPIC_MODEL` — optional, default `claude-sonnet-4-5-20250929`; sets the primary model
 - `ANTHROPIC_BASE_URL` — optional, for proxies
+- `ANTHROPIC_EXTRA_MODELS` — optional, comma-separated list of additional Anthropic model IDs
 - `OPENAI_API_KEY` — adds OpenAI as a secondary provider
+- `OPENAI_EXTRA_MODELS` — optional, comma-separated list of additional OpenAI model IDs
 - `TELEGRAM_BOT_TOKEN`, `DISCORD_BOT_TOKEN`, `SLACK_BOT_TOKEN`/`SLACK_APP_TOKEN` — chat channels
 - `CLAWDBOT_GATEWAY_TOKEN` — gateway auth token; when set, signals remote access intent
 - `OPENCLAW_BIND_HOST` — host-side bind address in docker-compose.yml (default `127.0.0.1`, set to `0.0.0.0` for remote access). This is a docker-compose variable, not passed into the container.
